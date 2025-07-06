@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>king-comet 专属旋转相册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+            display: flex;
+            background-image: url(./image/背景壁纸.jpg);
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        #box {
+            position: relative;
+            display: flex;
+            width: 130px;
+            height: 200px;
+            margin: auto;
+            transform-style: preserve-3d;
+            transform: rotateX(-10deg);
+        }
+
+        #box>div {
+            transform-style: preserve-3d;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            line-height: 200px;
+            font-size: 50px;
+            text-align: center;
+            box-shadow: 0 0 10px #fff;
+            -webkit-box-reflect: below 10px -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .8) 100%);
+        }
+
+        #box p {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            margin: auto;
+            width: 1200px;
+            height: 1200px;
+            background: -webkit-radial-gradient(center center, 600px 600px, rgba(50, 50, 50, 1), rgba(0, 0, 0, 0));
+            border-radius: 50%;
+            transform: rotateX(90deg) translate3d(-600px, 0, -105px);
+        }
+
+        /* 樱花样式 */
+        .sakura {
+            position: absolute;
+            pointer-events: none;
+            animation: fall 10s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* 音乐控制按钮样式，隐藏按钮 */
+        #music-control {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <p></p>
+    </div>
+    <!-- 音乐元素 -->
+    <audio id="music" src="./music/Dreamy DJ _ Slow77 - Fall in Love (Radio Edit).mp3" loop></audio>
+    <!-- 音乐控制按钮 -->
+    <button id="music-control">播放音乐</button>
+    <script>
+        setTimeout(init, 100);
+
+        function init() {
+            var obox = document.getElementById('box'),
+                aDiv = obox.getElementsByTagName('div');
+
+            for (var i = 0; i < aDiv.length; i++) {
+                aDiv[i].style.background = "url(./image/" + (i + 1) + ".jpg) center/cover";
+                aDiv[i].style.transform = "rotateY(" + (i * 36) + "deg) translate3d(0,0,350px)";
+                aDiv[i].style.transition = "transform 1s " + (aDiv.length - i) * 0.2 + "s";
+            }
+
+            var sX,
+                sY,
+                nX,
+                nY,
+                desX = 0,
+                desY = 0,
+                tX = 0,
+                tY = 10,
+                index = 0;
+
+            // 自动旋转相关变量
+            var autoRotateSpeed = 0.2;
+            // 自动旋转定时器
+            var autoRotateTimer = setInterval(function () {
+                tX += autoRotateSpeed;
+                obox.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + tX + "deg)";
+            }, 13);
+
+            document.onmousedown = function (e) {
+                clearInterval(autoRotateTimer);
+                clearInterval(obox.timer);
+                e = e || window.event;
+                var sX = e.clientX,
+                    sY = e.clientY;
+                this.onmousemove = function (e) {
+                    e = e || window.event;
+                    var nX = e.clientX,
+                        nY = e.clientY;
+                    desX = nX - sX;
+                    desY = nY - sY;
+                    tX += desX * 0.1;
+                    tY += desY * 0.1;
+
+                    obox.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + tX + "deg)";
+                    sX = nX;
+                    sY = nY;
+                }
+                this.onmouseup = function () {
+                    this.onmousemove = this.onmouseup = null;
+                    obox.timer = setInterval(function () {
+                        desX *= 0.95;
+                        desY *= 0.95;
+                        tX += desX * 0.1;
+                        tY += desY * 0.1;
+                        obox.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + tX + "deg)";
+                        if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
+                            clearInterval(obox.timer);
+                            autoRotateTimer = setInterval(function () {
+                                tX += autoRotateSpeed;
+                                obox.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + tX + "deg)";
+                            }, 13);
+                        }
+                    }, 13);
+                }
+                return false;
+            }
+
+            mousewheel(document, function (e) {
+                e = e || window.event;
+                var d = e.wheelDelta / 120 || -e.detail / 3;
+                if (d > 0) {
+                    index -= 20;
+                } else {
+                    index += 30;
+                }
+                (index < (-1050) && (index = (-1050)));
+                document.body.style.perspective = 1000 + index + "px";
+            })
+
+            function mousewheel(obj, fn) {
+                document.onmousewheel === null ? obj.onmousewheel = fn : addEvent(obj, "DOMMouseScroll", fn)
+            }
+
+            function addEvent(obj, eName, fn) {
+                obj.attachEvent ? obj.attachEvent("on" + eName, fn) : obj.addEventListener(eName, fn);
+            }
+
+            // 创建樱花
+            function createSakura() {
+                var sakura = document.createElement('img');
+                sakura.classList.add('sakura');
+                // 使用真实樱花图片，需替换为实际路径
+                sakura.src = "./image/玫瑰花.png";
+                sakura.style.width = (Math.random() * 20 + 10) + "px";
+                sakura.style.height = "auto";
+                sakura.style.left = Math.random() * window.innerWidth + 'px';
+                sakura.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
+                sakura.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                document.body.appendChild(sakura);
+
+                setTimeout(() => {
+                    sakura.remove();
+                }, 10000);
+            }
+
+            setInterval(createSakura, 100);
+
+            // 音乐控制
+            var music = document.getElementById('music');
+
+            // 尝试自动播放音乐
+            function tryAutoPlay() {
+                music.play().catch(() => {
+                    // 自动播放失败，监听用户交互事件
+                    document.addEventListener('click', function playOnInteraction() {
+                        music.play().then(() => {
+                            document.removeEventListener('click', playOnInteraction);
+                        }).catch(() => {
+                            console.log('音乐播放仍失败');
+                        });
+                    });
+                });
+            }
+
+            tryAutoPlay();
+        }
+    </script>
+</body>
+
+</html>
